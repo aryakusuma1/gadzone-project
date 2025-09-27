@@ -39,9 +39,28 @@
         <div v-for="produk in produks" :key="produk.id" class="product-item">
           <div class="modern-product-card">
             <div class="product-image">
+              <!-- Action Menu Button overlay di atas gambar -->
+              <div class="product-action-menu">
+                <button @click="toggleActionMenu(produk.id)" class="action-menu-btn" :class="{ 'active': activeMenu === produk.id }">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <!-- Dropdown Menu -->
+                <div v-if="activeMenu === produk.id" class="action-dropdown">
+                  <button @click="goToEditProduk(produk.id)" class="dropdown-item edit-item">
+                    <i class="fas fa-edit"></i>
+                    Edit
+                  </button>
+                  <button @click="deleteProduk(produk.id)" class="dropdown-item delete-item">
+                    <i class="fas fa-trash"></i>
+                    Hapus
+                  </button>
+                </div>
+              </div>
+
               <img
-                :src="produk.image_url || 'https://via.placeholder.com/300x300'"
+                :src="getImageUrl(produk.image_url)"
                 :alt="produk.name"
+                @error="handleImageError"
               />
             </div>
             <div class="product-content">
@@ -51,16 +70,6 @@
               <h3 class="product-name">{{ produk.name }}</h3>
               <p class="product-description">{{ produk.description }}</p>
               <div class="product-price">Rp {{ produk.price }}</div>
-            </div>
-            <div class="product-actions">
-              <button @click="goToEditProduk(produk.id)" class="edit-btn">
-                <i class="fas fa-edit"></i>
-                Edit
-              </button>
-              <button @click="deleteProduk(produk.id)" class="delete-btn">
-                <i class="fas fa-trash"></i>
-                Hapus
-              </button>
             </div>
           </div>
         </div>
@@ -79,6 +88,7 @@ const route = useRoute();
 const produks = ref([]);
 const allProduks = ref([]);
 const searchQuery = ref('');
+const activeMenu = ref(null);
 
 // Fetch Produk
 const fetchProduks = () => {
@@ -116,9 +126,41 @@ const clearSearch = () => {
   router.push('/products');
 };
 
+// Helper function untuk URL gambar
+const getImageUrl = (imageUrl) => {
+  if (!imageUrl) return 'https://via.placeholder.com/300x300?text=No+Image';
+
+  // Jika sudah full URL, return as is
+  if (imageUrl.startsWith('http')) return imageUrl;
+
+  // Ambil base URL dari API instance yang sudah dikonfigurasi
+  const baseUrl = Api.defaults.baseURL || 'http://127.0.0.1:8000';
+
+  // Jika dimulai dengan /storage, langsung append ke base URL
+  if (imageUrl.startsWith('/storage')) {
+    return `${baseUrl}${imageUrl}`;
+  }
+
+  // Jika relative path tanpa /storage, tambahkan /storage/
+  return `${baseUrl}/storage/${imageUrl}`;
+};
+
+// Handle image error
+const handleImageError = (event) => {
+  event.target.src = 'https://via.placeholder.com/300x300?text=No+Image';
+};
+
+// Action Menu Handler
+const toggleActionMenu = (id) => {
+  activeMenu.value = activeMenu.value === id ? null : id;
+};
+
 // Navigasi
 const goToCreateProduk = () => router.push('/create');
-const goToEditProduk = (id) => router.push(`/edit/${id}`);
+const goToEditProduk = (id) => {
+  activeMenu.value = null; // Close menu
+  router.push(`/edit/${id}`);
+};
 
 // Watch route query changes
 watch(() => route.query.search, (newSearch) => {
@@ -133,6 +175,13 @@ watch(searchQuery, () => {
 
 onMounted(() => {
   fetchProduks();
+
+  // Event listener untuk menutup menu saat klik di luar
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.product-action-menu')) {
+      activeMenu.value = null;
+    }
+  });
 });
 </script>
 
@@ -332,6 +381,82 @@ onMounted(() => {
   padding: 1rem;
 }
 
+/* Product Action Menu Overlay */
+.product-action-menu {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+}
+
+.action-menu-btn {
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+}
+
+.action-menu-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.action-menu-btn.active {
+  background: #032541;
+  transform: rotate(90deg);
+}
+
+/* Action Dropdown */
+.action-dropdown {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  min-width: 120px;
+  z-index: 20;
+  overflow: hidden;
+  border: 1px solid #e9ecef;
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.dropdown-item:hover {
+  background: #f8f9fa;
+}
+
+.dropdown-item.edit-item:hover {
+  background: rgba(255, 193, 7, 0.1);
+  color: #f39c12;
+}
+
+.dropdown-item.delete-item:hover {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
 /* Product Content */
 .product-content {
   padding: 1.5rem;
@@ -384,48 +509,6 @@ onMounted(() => {
   margin-bottom: 1rem;
 }
 
-/* Product Actions */
-.product-actions {
-  padding: 1rem 1.5rem;
-  background: #f8f9fa;
-  display: flex;
-  gap: 0.75rem;
-}
-
-.edit-btn, .delete-btn {
-  flex: 1;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.edit-btn {
-  background: #ffc107;
-  color: #495057;
-}
-
-.edit-btn:hover {
-  background: #ffb302;
-  transform: translateY(-1px);
-}
-
-.delete-btn {
-  background: #dc3545;
-  color: white;
-}
-
-.delete-btn:hover {
-  background: #c82333;
-  transform: translateY(-1px);
-}
 
 /* Responsive Design */
 @media (max-width: 768px) {
@@ -463,11 +546,6 @@ onMounted(() => {
   .products-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
-  }
-
-  .product-actions {
-    flex-direction: column;
-    gap: 0.5rem;
   }
 }
 </style>

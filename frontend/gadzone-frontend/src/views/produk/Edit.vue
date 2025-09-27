@@ -3,15 +3,15 @@
     <h2>Edit Produk</h2>
     <form @submit.prevent="updateProduk">
       <div class="mb-3">
-        <label>Nama Produk</label>
+        <label>Nama Produk <span class="required-asterisk">*</span></label>
         <input type="text" v-model="produk.name" class="form-control" required />
       </div>
       <div class="mb-3">
-        <label>Deskripsi</label>
+        <label>Deskripsi <span class="required-asterisk">*</span></label>
         <textarea v-model="produk.description" class="form-control" required></textarea>
       </div>
       <div class="mb-3">
-        <label>Harga</label>
+        <label>Harga <span class="required-asterisk">*</span></label>
         <input type="number" v-model="produk.price" class="form-control" required />
       </div>
       <div class="mb-3">
@@ -21,7 +21,7 @@
         <div v-if="currentImageUrl && !imagePreview" class="mb-2">
           <label class="form-text">Gambar saat ini:</label>
           <div>
-            <img :src="currentImageUrl" alt="Current Image" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
+            <img :src="getImageUrl(currentImageUrl)" alt="Current Image" class="img-thumbnail" style="max-width: 200px; max-height: 200px;" @error="handleImageError">
           </div>
         </div>
 
@@ -43,7 +43,7 @@
         </div>
       </div>
       <div class="mb-3">
-        <label>Kategori</label>
+        <label>Kategori <span class="required-asterisk">*</span></label>
         <select v-model="produk.category_id" class="form-control" required>
           <option v-for="category in categories" :key="category.id" :value="category.id">
             {{ category.name }}
@@ -114,6 +114,8 @@ onMounted(async () => {
     // Set current image URL for preview
     if (productData.image_url) {
       currentImageUrl.value = productData.image_url;
+    } else if (productData.image) {
+      currentImageUrl.value = productData.image;
     }
   } catch (error) {
     console.error('Error loading data:', error);
@@ -165,6 +167,7 @@ const updateProduk = async () => {
 
     // Buat FormData untuk file upload
     const formData = new FormData();
+    formData.append('_method', 'PUT'); // Laravel method spoofing
     formData.append('name', produk.value.name);
     formData.append('description', produk.value.description);
     formData.append('price', produk.value.price);
@@ -175,7 +178,7 @@ const updateProduk = async () => {
       formData.append('image', produk.value.image);
     }
 
-    const response = await Api.put(`/api/products/${route.params.id}`, formData, {
+    const response = await Api.post(`/api/products/${route.params.id}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -199,4 +202,36 @@ const updateProduk = async () => {
     loading.value = false;
   }
 };
+
+// Helper function untuk URL gambar
+const getImageUrl = (imageUrl) => {
+  if (!imageUrl) return 'https://via.placeholder.com/300x300?text=No+Image';
+
+  // Jika sudah full URL, return as is
+  if (imageUrl.startsWith('http')) return imageUrl;
+
+  // Ambil base URL dari API instance yang sudah dikonfigurasi
+  const baseUrl = Api.defaults.baseURL || 'http://127.0.0.1:8000';
+
+  // Jika dimulai dengan /storage, langsung append ke base URL
+  if (imageUrl.startsWith('/storage')) {
+    return `${baseUrl}${imageUrl}`;
+  }
+
+  // Jika relative path tanpa /storage, tambahkan /storage/
+  return `${baseUrl}/storage/${imageUrl}`;
+};
+
+// Handle image error
+const handleImageError = (event) => {
+  event.target.src = 'https://via.placeholder.com/300x300?text=No+Image';
+};
 </script>
+
+<style scoped>
+.required-asterisk {
+  color: #dc3545;
+  font-weight: bold;
+  margin-left: 2px;
+}
+</style>

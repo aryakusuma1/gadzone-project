@@ -37,7 +37,7 @@
   
   <script setup>
   import { ref } from 'vue';
-  import axios from 'axios';
+  import Api from '@/api/index.js';
   import { useRouter } from 'vue-router';
   
   const router = useRouter();
@@ -46,7 +46,7 @@
   });
   
   const storeCategory = () => {
-    axios.post('http://127.0.0.1:8000/api/categories', category.value)
+    Api.post('/api/categories', category.value)
       .then(response => {
         router.push('/categories');  // Redirect ke halaman kategori setelah sukses
       })

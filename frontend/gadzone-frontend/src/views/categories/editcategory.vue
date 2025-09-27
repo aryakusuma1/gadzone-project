@@ -15,7 +15,7 @@
   <script setup>
   import { ref, onMounted } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
-  import axios from 'axios';
+  import Api from '@/api/index.js';
   
   const route = useRoute();
   const router = useRouter();
@@ -25,7 +25,7 @@
   
   onMounted(() => {
     // Mengambil kategori berdasarkan ID
-    axios.get(`http://127.0.0.1:8000/api/categories/${route.params.id}`)
+    Api.get(`/api/categories/${route.params.id}`)
       .then(response => {
         category.value = response.data.data;  // Menyimpan data kategori yang akan diedit
       })
@@ -36,7 +36,7 @@
   
   const updateCategory = () => {
     // Mengirim data kategori yang sudah diperbarui
-    axios.put(`http://127.0.0.1:8000/api/categories/${route.params.id}`, category.value)
+    Api.put(`/api/categories/${route.params.id}`, category.value)
       .then(response => {
         router.push('/categories');  // Redirect setelah sukses mengupdate kategori
       })

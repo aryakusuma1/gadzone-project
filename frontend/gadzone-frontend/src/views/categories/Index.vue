@@ -69,7 +69,7 @@
             <!-- Action Menu Button (hanya saat tidak dalam bulk mode) -->
             <div v-if="!isBulkDeleteMode" class="category-action-menu">
               <button @click="toggleActionMenu(category.id)" class="action-menu-btn" :class="{ 'active': activeMenu === category.id }">
-                <i class="fas fa-plus"></i>
+                <i class="fas fa-ellipsis-v"></i>
               </button>
               <!-- Dropdown Menu -->
               <div v-if="activeMenu === category.id" class="action-dropdown">
@@ -520,73 +520,70 @@ onMounted(() => {
 }
 
 .action-menu-btn {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  color: white;
   width: 32px;
   height: 32px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6c757d;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
 }
 
 .action-menu-btn:hover {
-  background: #032541;
-  color: white;
-  border-color: #032541;
-  transform: rotate(45deg);
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
 }
 
 .action-menu-btn.active {
   background: #032541;
-  color: white;
-  border-color: #032541;
-  transform: rotate(45deg);
+  transform: rotate(90deg);
 }
 
 .action-dropdown {
   position: absolute;
-  top: 100%;
+  top: 40px;
   right: 0;
   background: white;
-  border: 1px solid #dee2e6;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   min-width: 120px;
-  overflow: hidden;
   z-index: 20;
+  overflow: hidden;
+  border: 1px solid #e9ecef;
 }
 
 .dropdown-item {
   width: 100%;
-  padding: 10px 15px;
+  padding: 10px 16px;
   border: none;
   background: none;
   text-align: left;
   cursor: pointer;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 0.9rem;
-  transition: background-color 0.2s ease;
+  color: #495057;
 }
 
 .dropdown-item:hover {
   background: #f8f9fa;
 }
 
-.edit-item:hover {
-  background: #fff3cd;
-  color: #856404;
+.dropdown-item.edit-item:hover {
+  background: rgba(255, 193, 7, 0.1);
+  color: #f39c12;
 }
 
-.delete-item:hover {
-  background: #f8d7da;
-  color: #721c24;
+.dropdown-item.delete-item:hover {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
 }
 
 /* Category Content */
