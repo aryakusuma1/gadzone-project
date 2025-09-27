@@ -104,10 +104,20 @@ const fetchProduks = () => {
 const filterProduks = () => {
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase().trim();
-    produks.value = allProduks.value.filter(produk =>
-      produk.name.toLowerCase().includes(query) ||
-      (produk.category?.name || '').toLowerCase().includes(query)
-    );
+
+    // Split query menjadi kata-kata individual
+    const searchWords = query.split(/\s+/).filter(word => word.length > 0);
+
+    produks.value = allProduks.value.filter(produk => {
+      const productName = produk.name.toLowerCase();
+      const categoryName = (produk.category?.name || '').toLowerCase();
+
+      // Semua kata harus ada di salah satu field (name atau category saja)
+      return searchWords.every(word =>
+        productName.includes(word) ||
+        categoryName.includes(word)
+      );
+    });
   } else {
     produks.value = allProduks.value;
   }
