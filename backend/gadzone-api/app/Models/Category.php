@@ -10,5 +10,5 @@ class Category extends Model
     use HasFactory;
 
     // Pastikan 'name' ada dalam array fillable
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'slug'];
 }

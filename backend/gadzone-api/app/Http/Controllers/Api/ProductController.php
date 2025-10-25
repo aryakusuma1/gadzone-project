@@ -36,25 +36,31 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
-            'price' => 'required|numeric|min:0',
+            'price' => 'required|integer|min:1|max:999999999',
             'category_id' => 'required|exists:categories,id',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048', // Max 2MB
         ]);
 
         $data = $request->only(['name', 'description', 'price', 'category_id']);
 
+        // Membuat slug secara otomatis dari nama produk
+        $slug = Str::slug($request->name);
+        $originalSlug = $slug;
+        $count = 1;
+
+        // Memastikan slug unik
+        while (Product::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $count++;
+        }
+        $data['slug'] = $slug; // Tambahkan slug ke data
+
         // Handle file upload
         if ($request->hasFile('image')) {
             $data['image'] = $this->uploadImage($request->file('image'));
         }
 
-        // Membuat produk baru
         $product = Product::create($data);
 
-        // Load relasi kategori untuk response
-        $product->load('category');
-
-        // Tambahkan URL gambar untuk response
         if ($product->image) {
             $product->image_url = asset('storage/' . $product->image);
         }
@@ -89,7 +95,7 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
-            'price' => 'required|numeric|min:0',
+            'price' => 'required|integer|min:1|max:999999999',
             'category_id' => 'required|exists:categories,id',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048', // Max 2MB
         ]);
@@ -102,18 +108,17 @@ class ProductController extends Controller
             ], 404);
         }
 
-        $data = $request->only(['name', 'description', 'price', 'category_id']);
+                    $data = $request->only(['name', 'description', 'price', 'category_id']);
+        
+            // Handle file upload
+            if ($request->hasFile('image')) {
+                // Hapus gambar lama jika ada
+                if ($product->image && Storage::disk('public')->exists($product->image)) {
+                    Storage::disk('public')->delete($product->image);
+                }
 
-        // Handle file upload
-        if ($request->hasFile('image')) {
-            // Hapus gambar lama jika ada
-            if ($product->image && Storage::disk('public')->exists($product->image)) {
-                Storage::disk('public')->delete($product->image);
+                $data['image'] = $this->uploadImage($request->file('image'));
             }
-
-            $data['image'] = $this->uploadImage($request->file('image'));
-        }
-
         $product->update($data);
 
         // Load relasi kategori untuk response

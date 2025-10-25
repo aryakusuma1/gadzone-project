@@ -37,6 +37,7 @@
               v-model="produk.price"
               class="form-input"
               placeholder="Masukkan harga produk..."
+              step="1"
               required
             />
           </div>
@@ -192,7 +193,17 @@ const storeProduk = async () => {
   } catch (error) {
     console.error('Error creating product:', error);
     if (error.response && error.response.data) {
-      errorMessage.value = error.response.data.message || 'Gagal menyimpan produk';
+      // Jika ada error validasi, ambil pesan pertama dari setiap field dan gabungkan
+      if (error.response.data.errors) {
+        const errors = error.response.data.errors;
+        let fullErrorMessage = '';
+        for (const field in errors) {
+          fullErrorMessage += errors[field][0] + ' ';
+        }
+        errorMessage.value = fullErrorMessage.trim();
+      } else {
+        errorMessage.value = error.response.data.message || 'Gagal menyimpan produk';
+      }
     } else {
       errorMessage.value = 'Terjadi kesalahan saat menyimpan produk';
     }

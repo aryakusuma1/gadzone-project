@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('categories', function (Blueprint $table) {
-            //
+        Schema::table('products', function (Blueprint $table) {
+            // Change the column to unsigned integer
+            $table->unsignedInteger('price')->change();
         });
     }
 
@@ -21,9 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('categories', function (Blueprint $table) {
-            //
+        Schema::table('products', function (Blueprint $table) {
+            // Revert back to decimal
+            $table->decimal('price', 10, 2)->change();
         });
     }
-    
 };

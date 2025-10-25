@@ -12,7 +12,7 @@
       </div>
       <div class="mb-3">
         <label>Harga <span class="required-asterisk">*</span></label>
-        <input type="number" v-model="produk.price" class="form-control" required />
+        <input type="number" v-model="produk.price" class="form-control" step="1" required />
       </div>
       <div class="mb-3">
         <label class="form-label">Gambar Produk</label>
@@ -194,7 +194,17 @@ const updateProduk = async () => {
   } catch (error) {
     console.error('Error updating product:', error);
     if (error.response && error.response.data) {
-      errorMessage.value = error.response.data.message || 'Gagal memperbarui produk';
+      // Jika ada error validasi, ambil pesan pertama dari setiap field dan gabungkan
+      if (error.response.data.errors) {
+        const errors = error.response.data.errors;
+        let fullErrorMessage = '';
+        for (const field in errors) {
+          fullErrorMessage += errors[field][0] + ' ';
+        }
+        errorMessage.value = fullErrorMessage.trim();
+      } else {
+        errorMessage.value = error.response.data.message || 'Gagal memperbarui produk';
+      }
     } else {
       errorMessage.value = 'Terjadi kesalahan saat memperbarui produk';
     }

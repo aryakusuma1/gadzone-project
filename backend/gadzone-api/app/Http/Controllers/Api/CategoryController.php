@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
@@ -21,8 +22,25 @@ class CategoryController extends Controller
     // Menyimpan kategori baru
     public function store(Request $request)
     {
-        $request->validate(['name' => 'required']);
-        $category = Category::create($request->all());
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        // Membuat slug secara otomatis dari nama
+        $slug = Str::slug($request->name);
+        $originalSlug = $slug;
+        $count = 1;
+
+        // Memastikan slug unik
+        while (Category::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $count++;
+        }
+
+        $category = Category::create([
+            'name' => $request->name,
+            'slug' => $slug,
+        ]);
+
         return response()->json([
             'success' => true,
             'data' => $category
