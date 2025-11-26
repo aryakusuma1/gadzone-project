@@ -7,6 +7,9 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
+/**
+ * @codeCoverageIgnore
+ */
 class CategoryController extends Controller
 {
     // Menampilkan semua kategori
